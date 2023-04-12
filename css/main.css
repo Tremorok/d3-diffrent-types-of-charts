@@ -1,0 +1,31 @@
+body {
+    background: gray;
+}
+
+div#mainContainer {
+    padding: 10px;
+    background: darkgrey;
+    /* width: fit-content; */
+}
+
+div.chartElem {
+    min-height: 600px;
+    background: rgb(255, 255, 255);
+    width: 600px;
+    margin: 10px;
+    padding: 10px;
+}
+
+div#chartPlace {
+    height: 700px;
+    width: 50%;
+    background: white;
+    border: 1px solid;
+}
+
+div#chartSettings {
+    height: 700px;
+    width: 50%;
+    background: white;
+    border: 1px solid;
+}

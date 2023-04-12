@@ -1,0 +1,50 @@
+.d3_chart_name_element_default {
+    width: min-content;
+    font-weight: bold;
+    font-size: 26px;
+    -webkit-text-stroke: 2px rgba(255, 255, 255, 0.479);
+    font-style: normal;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.d3ChartsList {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+    align-items: center;
+    padding: 10px;
+}
+
+.d3Chart {
+    margin: 10px;
+}
+
+.d3Chart.selected {
+    border: 1px solid blue
+}
+
+.d3_tt {
+    position: absolute;
+    width: 200px;
+    height: auto;
+    padding: 10px;
+    z-index: 99999;
+    background-color: white;
+    -webkit-border-radius: 10px;
+    -moz-border-radius: 10px;
+    border-radius: 10px;
+    -webkit-box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+    -mox-box-shadow: 4px 4px 4px 10px rgba(0, 0, 0, 0.4);
+    box-shadow: 4px 4px 10px rbga(0, 0, 0, 0.4) pointer-events: none;
+}
+.d3_tt.hidden {
+    opacity: 0;
+}
+.d3_tt p {
+    margin: 0;
+    font-family: sans-serif;
+    font-size: 16px;
+    line-height: 20px;
+}

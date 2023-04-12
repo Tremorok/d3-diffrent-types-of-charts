@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://raw.github.com/gka/chroma.js/master/chroma.min.js"></script>
+    <!-- chroma.scale(["#80ff80", "#0066cc"]).colors(10) -->
+    
+    <style>
+        .d3_chart_name_element_default {
+            width: min-content;
+            font-weight: bold;
+            font-size: 26px;
+            -webkit-text-stroke: 2px rgba(255, 255, 255, 0.479);
+            font-style: normal;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        div#mainContainer {
+            padding: 100px;
+            background: darkgrey;
+            width: fit-content;
+        }
+
+        div#simplePie {
+            height: 600px;
+            background: rgb(255, 255, 255);
+            width: 600px;
+            margin: 100px;
+            padding: 100px;
+        }
+
+        body {
+            background: gray;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="mainContainer">
+        <div id="simplePie"></div>
+    </div>
+    <script>
+        //let population = [{"name":"<5","value":19912018},{"name":"5-9","value":20501982},{"name":"10-14","value":20679786},{"name":"15-19","value":21354481},{"name":"20-24","value":22604232},{"name":"25-29","value":21698010},{"name":"30-34","value":21183639},{"name":"35-39","value":19855782},{"name":"40-44","value":20796128},{"name":"45-49","value":21370368},{"name":"50-54","value":22525490},{"name":"55-59","value":21001947},{"name":"60-64","value":18415681},{"name":"65-69","value":14547446},{"name":"70-74","value":10587721},{"name":"75-79","value":7730129},{"name":"80-84","value":5811429},{"name":"≥85","value":5938752}];
+        const population = [
+            { name: 'Пися', value: 5 },
+            { name: 'Хуй', value: 10 },
+            { name: 'Говно', value: 15 },
+            { name: 'Пидарас', value: 25 },
+            { name: 'Хуета', value: 30 },
+        ];
+
+        let testPreset = [];
+        let testPresetNames = ['Пися','Хуй','Дерьмо','Вагина','Залупа','Хуета','Пидарас','Пидар','Гандон','Выпук','Член','Параша'];
+
+        for (let i = 0; i < 9; i++) {
+            let rndNameNumber = Math.round(Math.random(testPresetNames.length)*10);
+            //console.log(rndNameNumber);
+            //let name = testPresetNames[rndNameNumber]+i;
+            let name = testPresetNames[i];
+            //let value = i == 0 ? 5 : Math.round(Math.random(i*5+5)*100);
+            let value = i == 0 ? 5 : i*5+5;
+            testPreset.push({"name":name,"value":value});
+        }
+        console.log(testPreset);
+
+        let chart = PieChartSVG('simplePie', testPreset, {
+            name: d => d.name,
+            value: d => d.value,
+            width: 600,
+            height: 600,
+            labelRadius: 250,
+            innerRadius: 100,
+            outerRadius: 150,
+            //colorsPreset: "thermal",
+            //chartName: "Говнопончик",//Пока решил забить на возможность давать название чарту, позже добавим
+            //title: ["Bananas","Pears","1","2","3"],
+            //names: ['Пися','Хуй','Дерьмо','Вагина','Залупа','Хуета','Пидарас','Пидар','Гандон','Выпук','Член','Параша'],
+            colors: ['#80ff80', '#72ee88', '#64dd91', '#55cc99', '#47bba2', '#39aaaa', '#2b99b3', '#1c88bb', '#0e77c4', '#0066cc'],
+            //colors: ["#fff0f0","#ffd4ef","#fda4ee","#adf3ed","#d0f2ec"]
+        });
+
+
+        //Стас, нужно намутить еще тултип, чтобы можно было листнер передать и его форму
+        //Еще нужна функция, которая разные палитры генерит (по количеству цветов, укажем 10, вернет 10)
+        //Нужна возможность включать и выключать некоторые вещи, например показ лэйбла, либо убирать к хуям стрелочки до лэйблов
+        //Нужна хуета, которая может считать суммы по группам
+        //Нужна хуета, чтобы можно было сортировку выставить (и обратную)
+        //Нужна хуета, чтобы можно было агрегировать (либо оставить это на отдельную функцию)
+        //Нужен хэндлер на тултипах, и по кликам на лэйблы с кусочками чартов
+
+        function PieChartSVG(elementId, data, {
+            name = ([x]) => x,  // given d in data, returns the (ordinal) label
+            value = ([, y]) => y, // given d in data, returns the (quantitative) value
+            title, // В теории, можно будет переназвать колонки, но пока не пашет
+            customLables, // По плану, сюда будет залетать шаблон для лейбла (чтобы потом пропихивать всякие ссылки и прочий калл)
+            lablesHandler, // По плану, сюда можно будет передать хэндлер для листнера кликов по лэйблам (чтобы можно было что-то делать по клику)
+            width = 640, // Ширина чарта (общая)
+            height = 400, // Высота чарта (общая)
+            innerRadius = 0, // Внутренний радиус пирога
+            outerRadius = Math.min(width, height) / 2, // Внешний радиус пирога
+            labelRadius = (innerRadius * 0.2 + outerRadius * 0.8), // Центральный радиус расположений лэйблов
+            colorsPreset, //Пресеты цветов (thermal,blues и мб что-то еще)
+            format = ",", // a format specifier for values (in the label) хз что это
+            names, // Массив имён, если укажем, то он смапится с массивом colors 1 к 1, и конкретная группа, будет подсвечиватся конкретным цветом
+            colors, // массив текстовых #hex цветов, наложатся по порядку, либо по связе со списком имен
+            stroke = innerRadius > 0 ? "none" : "white", // Граница чарта
+            strokeWidth = 1, // Ширина границы чарта
+            strokeLinejoin = "round", // line join of stroke separating wedges хз что это
+            padAngle = stroke === "none" ? 1 / outerRadius : 0, // angular separation between wedges Вообще не ебу что это
+        } = {}) {
+            // Compute values. Вообще не ебу что это
+            const N = d3.map(data, name);
+            const V = d3.map(data, value);
+            const I = d3.range(N.length).filter(i => !isNaN(V[i]));
+
+            // Unique the names.
+            if (names === undefined) names = N;
+            names = new d3.InternSet(names);
+
+            let colorsSchemas = {
+                "thermal": "schemeReds",
+                "blues": "schemeBlues"
+            };
+            // Chose a default color scheme based on cardinality.
+            if (colorsPreset === undefined && colors === undefined) {
+                colors = d3.quantize(t => d3.interpolateSpectral(t * 0.8 + 0.1), names.size);
+            } else if (colorsPreset !== undefined) {
+                colors = d3[colorsSchemas[colorsPreset]][names.size];
+            }
+            console.log(names);
+            console.log(colors);
+            // Construct scales.
+            const color = d3.scaleOrdinal(names, colors);
+            
+            let simpleNamePattern = `
+                <div class="d3_chart_name_element_default">
+                    <name>$name</name>
+                    <val>$value</val>
+                </div>
+            `;
+
+            if (title === undefined) {
+                const formatValue = d3.format(format);
+                title = i => {
+                    let pt = customLables == null ?
+                        simpleNamePattern.replaceAll('$name', N[i]).replaceAll('$value', V[i])
+                        : customLables.replaceAll('$name', N[i]).replaceAll('$value', V[i]).replaceAll('$i', i);
+
+                    let obj = {
+                        pattern: pt,
+                        imulPlace: `${N[i]}`,
+                        tit: `${N[i]}\n${formatValue(V[i])}`
+                    };
+                    return obj;
+                }
+            } else {
+                const O = d3.map(data, d => d);
+                const T = title;
+                title = i => T(O[i], i, data);
+            }
+            console.log(title(0));
+            // Construct arcs.
+            const arcs = d3.pie().padAngle(padAngle).sort(null).value(i => V[i])(I);
+            const arc = d3.arc().innerRadius(innerRadius).outerRadius(outerRadius);
+            const arcLabel = d3.arc().innerRadius(labelRadius).outerRadius(labelRadius);
+
+            //Создаем главный элемент, где будет валятся график и названия кусочков
+            let chart = d3.create("div")
+                .attr("id", "d3_chart-" + elementId)
+                .style("width", width)
+                .style("height", height)
+
+            //Создаем элемент
+            chart.append("svg")
+                .attr("width", width)
+                .attr("height", height)
+                .attr("viewBox", [-width / 2, -height / 2, width, height])
+                .attr("style", "max-width: 100%; height: auto; height: intrinsic; position: absolute;");
+
+            //Прорисовка названий половинок
+            chart.selectAll("svg")
+                .append("g")
+                .attr("font-family", "sans-serif")
+                .attr("font-size", 20)
+                .attr("text-anchor", "middle")
+                .selectAll("text")
+                .data(arcs)
+                .join("text")
+                .attr("transform", d => {
+                    const tspanPosition = arcLabel.centroid(d);
+                    const tspanPositionAttr = `translate(${tspanPosition})`;
+                    return tspanPositionAttr;
+                })
+                .selectAll("tspan")
+                .data(d => {
+                    const lines = [{
+                        imulPlace: title(d.data).imulPlace,
+                        pattern: title(d.data).pattern
+                    }];
+                    return (d.endAngle - d.startAngle) > 0.25 ? lines : lines.slice(0, 1);
+                })
+                .join("tspan")
+                .attr("class", "d3_chart_elem")
+                .attr("data", d => d.pattern)
+                .attr("fill", "none")//Заливаем текст прозрачным цветом
+                .text(d => d.imulPlace);//Я хз насколько это вэлью, но я подсовываю прозрачный текст, чтобы d3 выкупил примерно куда закинуть элемент сам, а потом цепляюсь за его позицию
+
+            chart.selectAll("svg")
+                .append("g")
+                .attr("stroke", stroke)
+                .attr("stroke-width", strokeWidth)
+                .attr("stroke-linejoin", strokeLinejoin)
+                .selectAll("path")
+                .data(arcs)
+                .join("path")
+                .attr("fill", d => color(N[d.data]))
+                .attr("d", arc)
+                .append("title")
+                .text(d => title(d.data).tit);
+
+
+            chart.selectAll("svg")
+                .selectAll('allSlices')
+                .data(arcs)
+                .enter()
+                .append('polyline')
+                .attr("stroke", "black")
+                .style("fill", "gray")
+                .attr("stroke-width", 1)
+                .attr('points', function (d) {
+                    var posA = arc.centroid(d) // line insertion in the slice
+                    var posB = arcLabel.centroid(d) // line break: we use the other arc generator that has been built only for that
+                    var posC = arcLabel.centroid(d); // Label position = almost the same as posB
+                    var midangle = d.startAngle + (d.endAngle - d.startAngle) / 2 // we need the angle to see if the X position will be at the extreme right or extreme left
+                    posC[0] = outerRadius * 0.85 * (midangle < Math.PI ? 1 : -1); // multiply by 1 or -1 to put it on the right or on the left
+                    //var poss = [posA, [posB[0],posB[1]], posC, [posB[0],posB[1]]];
+                    var poss = [posA, [posB[0] * 0.83, posB[1] * 0.83]];
+                    return poss
+                });
+
+            chart.append("div")
+                .attr("class", "d3_chart-names");
+            let objAssign = Object.assign(chart.node(), { scales: { color } });
+
+            //document.querySelector(elementId).innerHTML = "";
+            document.getElementById(elementId).append(objAssign);
+            putNames(elementId);
+
+            return objAssign;
+        }
+        function putNames(elementId) {
+            let elements = document.querySelectorAll('#d3_chart-' + elementId + ' .d3_chart_elem'),
+                mainDiv = document.getElementById('d3_chart-' + elementId),
+                ppInfo = mainDiv.getBoundingClientRect(),
+                pLeft = ppInfo.left,
+                pTop = ppInfo.top,
+                namesDiv = document.querySelector('#d3_chart-' + elementId + ' .d3_chart-names');
+
+            // console.log("ping");
+            // console.log(namesDiv);
+            // console.log(elements.length);
+            //namesDiv.innerHTML = "";
+
+            for (let i = 0; i < elements.length; i++) {
+                let el = elements[i],
+                    text = el.attributes.data.nodeValue,
+                    positionInfo = el.getBoundingClientRect(),
+                    top = positionInfo.top - pTop + "px",
+                    left = positionInfo.left - pLeft + "px";
+
+                let htmlToIns = `<div style="position:relative; top:${top}; left:${left};height: 0px;" class="d3_names-element">
+                        ${text}
+                    <div>`;
+
+                namesDiv.insertAdjacentHTML('beforeend', htmlToIns);
+                //console.log(htmlToIns);
+            }
+        }
+    </script>
+</body>
+
+</html>

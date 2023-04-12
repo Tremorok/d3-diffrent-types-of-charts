@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <script src="/jslibs/jquery-3.6.4.min.js"></script>
+    <link rel="stylesheet" href="/css/bs/bootstrap-grid.css">
+    <link rel="stylesheet" href="/css/bs/bootstrap-reboot.css">
+    <link rel="stylesheet" href="/css/bs/bootstrap.css">
+    <script src="/jslibs/bootstrap.bundle.js"></script>
+    <script src="/jslibs/bootstrap.js"></script>
+    <script src="/jslibs/chroma.min.js"></script>
+    <script src="/jslibs/d3.v7.min.js"></script>
+
+    <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.18/dist/css/bootstrap-select.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.18/dist/js/bootstrap-select.min.js"></script>
+
+    <script src="/drCharts/d3Pie.js"></script>
+    <script src="/drCharts/d3BarVertical.js"></script>
+    <script src="/drCharts/d3BarHorizontal.js"></script>
+    <script src="/drCharts/d3StackedBarHorizontal.js"></script>
+    <script src="/drCharts/d3SolidGauga.js"></script>
+    <script src="/drCharts/d3StackedBarVertical.js"></script>
+
+    <script src="/drCharts/constructor/d3ChartComponents.js"></script>
+    <script src="/drCharts/constructor/d3ChartProps.js"></script>
+    <script src="/drCharts/constructor/d3DataParsers.js"></script>
+    <script src="/drCharts/constructor/d3ChartConstructor.js"></script>
+
+    <link rel="stylesheet" href="/css/d3Css.css">
+    <link rel="stylesheet" href="/css/main.css">
+</head>
+
+<body>
+    <div id="mainContainer" style="
+            display: flex;
+            justify-content: space-evenly;">
+        <div id="chartPlace"></div>
+        <div id="chartSettings"></div>
+        <script>
+            let testPreset = [];
+            let testPresetNames = ['Пися', 'Хуй', 'Дерьмо', 'Вагина', 'Залупа', 'Хуета', 'Пидарас', 'Пидар', 'Гандон', 'Выпук', 'Член', 'Параша'];
+
+            for (let i = 0; i < 12; i++) {
+                //for (let i = 9; i >= 0; i--) {
+                let rndNameNumber = Math.round(Math.random(testPresetNames.length) * 10);
+                //let name = testPresetNames[Math.round(Math.random(testPresetNames.length)*10)];
+                let name = testPresetNames[i];
+                let value = i == 0 ? 5 : i * 5 + 5;
+                testPreset.push({ "name": name, "value": value });
+            }
+
+            let groupsNames = ["1st", "2st", "3st", "4st", "5st", "6st", "7st", "8st", "9st", "10st", "11st", "12st", "13st", "14st", "15st", "16st", "17st"];
+            let subGroups = ["хуесос", "даун", "пидар", "гавно", "хуй", "член", "писька"];
+            let stackedPreset = [];
+            for (let i = 0; i < groupsNames.length; i++) {
+                let groupName = groupsNames[i];
+                for (let k = 0; k < subGroups.length; k++) {
+                    const subGroupName = subGroups[k];
+
+                    stackedPreset.push({
+                        "group": groupName,
+                        "subGroup": subGroupName,
+                        "value": Math.round(Math.random(testPresetNames.length) * 10)
+                    });
+                }
+            }
+
+            function createRandomDataSets(numDataSets) {
+                const wgs = ["1st", "2nd", "3rd", "4th", "5th", "remote", "shitiWG", "spida"];
+                const usvers = ["er41124", "er12345", "er98765", "er54321", "er24680"];
+                const dataSets = [];
+
+                for (let i = 0; i < numDataSets; i++) {
+                    const closedTasks = Math.floor(Math.random() * 100);
+                    const dataSet = {
+                        wg: wgs[Math.floor(Math.random() * wgs.length)],
+                        usver: usvers[Math.floor(Math.random() * usvers.length)],
+                        closedTasks: closedTasks,
+                    };
+                    dataSets.push(dataSet);
+                }
+
+                return dataSets;
+            }
+
+            let testDataSet = createRandomDataSets(100);
+
+            let parsedDataset = d3DataParsers.pie(testDataSet,{
+                group : "wg",
+                subGroup : "usver",
+                val : "closedTasks"
+            });
+            console.log(parsedDataset);
+
+
+            let chart = d3Pie.create('chartPlace', parsedDataset, {
+                name: d => d.name,
+                value: d => d.value,
+                info: d => d.info,
+                width: 400,
+                height: 400,
+                //labelRadius: 250,
+                innerRadius: 100,
+                outerRadius: 150,
+                padAngle: 0,
+                colorSchema: ['#80ff80','#0066cc'],
+                disable : {
+                    lines : true,
+                    lables : true
+                }
+            });
+
+            d3ChartConstructor.init("chartSettings", "chartPlace");
+        </script>
+</body>
+
+</html>
